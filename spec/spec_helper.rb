@@ -53,32 +53,30 @@ class TestApp < Sinatra::Base
 
   post '/generate_challenge' do
     env["warden"].authenticate!
-    # @user = env['warden'].user
   end
 
   post '/login' do
     env["warden"].authenticate!
-    # redirect '/'
   end
 end
 
 def app
   Rack::Builder.new do
     use Rack::Session::Cookie
-    # Warden::Manager.serialize_into_session { |user| user.id }
-    # Warden::Manager.serialize_from_session { |id| User.get(id) }
-
-    # Warden::Strategies.add :ocra_verify, Warden::Ocra::Strategies::OcraVerify
-    # Warden::Strategies.add :ocra_challenge, Warden::Ocra::Strategies::OcraChallenge
     use Warden::Manager do |config|
       config.default_strategies :ocra_verify, :ocra_challenge
       config.failure_app = TestApp
     end
-    # use Warden::Manager do |manager|
-    #   manager.default_strategies :ocra, :ocra_challenge
-    #   manager.failure_app = TestApp
-    # end
 
     run TestApp
   end
+end
+
+def warden
+  last_request.env["warden"]
+end
+
+def open_browser
+  File.open("/tmp/ocra-spec-out", 'w') { |file| file.write(last_response.body) }
+  `firefox /tmp/ocra-spec-out`
 end

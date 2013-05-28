@@ -24,13 +24,4 @@ describe Warden::Ocra do
       warden.should be_authenticated
     end
   end
-
-  def warden
-    last_request.env["warden"]
-  end
-
-  def open_browser
-    File.open("/tmp/ocra-spec-out", 'w') { |file| file.write(last_response.body) }
-    `firefox /tmp/ocra-spec-out`
-  end
 end
