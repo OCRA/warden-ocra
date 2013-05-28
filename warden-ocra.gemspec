@@ -14,4 +14,12 @@ Gem::Specification.new do |gem|
   gem.name          = "warden-ocra"
   gem.require_paths = ["lib"]
   gem.version       = Warden::Ocra::VERSION
+
+  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rspec'
+  gem.add_development_dependency 'sinatra'
+  gem.add_development_dependency 'rack-test'
+
+  gem.add_runtime_dependency 'warden'
+  gem.add_runtime_dependency 'rocra'
 end
