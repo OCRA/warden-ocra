@@ -2,12 +2,15 @@ require 'warden-ocra/version'
 require 'warden'
 require 'rocra'
 
-SUITE = 'OCRA-1:HOTP-SHA1-6:QN08'
-
 module Warden
   module Ocra
     class Configuration
+      attr_accessor :suite, :param_user_identifier, :param_response
+
       def initialize
+        self.suite = 'OCRA-1:HOTP-SHA1-6:QN08'
+        self.param_user_identifier = 'email'
+        self.param_response = 'response'
       end
     end
 
@@ -20,29 +23,40 @@ module Warden
     end
 
     module Strategies
-      class OcraVerify < Warden::Strategies::Base
-        def valid?
-          params["email"] && User.has_challenge?(params["email"])
-        end
-
-        def authenticate!
-          user = User.find_by_email!(params["email"])
-          challenge_hex = user.challenge.to_i.to_s(16)
-          response = Rocra.generate(
-            SUITE, user.shared_secret, '', challenge_hex, '', '', '')
-            params_response = params["response"]
-            response == params_response ? success!(user) : fail!("Cannot log in")
+      class BaseStrategy < Warden::Strategies::Base
+        def user_param
+          params[Warden::Ocra::config.param_user_identifier]
         end
       end
 
-      class OcraChallenge < Warden::Strategies::Base
+      class OcraVerify < BaseStrategy
         def valid?
-          params["email"] && !User.has_challenge?(params["email"])
+          user_param && User.has_challenge?(user_param)
         end
 
         def authenticate!
-          u = User.generate_challenge! params["email"]
-          env['warden'].set_user(u)
+          user = User.find_by_email! user_param
+          response = Rocra.generate(
+            Warden::Ocra::config.suite,
+            user.shared_secret,
+            '',
+            user.challenge.to_i.to_s(16),
+            '','', ''
+          )
+          response == params[Warden::Ocra::config.param_response] ?
+            success!(user) :
+            fail!
+        end
+      end
+
+      class OcraChallenge < BaseStrategy
+        def valid?
+          user_param && !User.has_challenge?(user_param)
+        end
+
+        def authenticate!
+          user = User.generate_challenge! user_param
+          env['warden'].set_user(user)
           pass
         end
       end
