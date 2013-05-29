@@ -5,16 +5,16 @@ module Warden
     module Strategies
       class OcraVerify < BaseStrategy
         def valid?
-          user_param && User.has_challenge?(user_param)
+          has_challenge?
         end
 
         def authenticate!
-          user = User.find_by_email! user_param
+          user = find_user
           response = Rocra.generate(
             Warden::Ocra::config.suite,
-            user.shared_secret,
+            user.send(Warden::Ocra::config.user_shared_secret_method),
             '',
-            user.challenge.to_i.to_s(16),
+            user.send(Warden::Ocra::config.user_challenge_method).to_i.to_s(16),
             '','', ''
           )
           response == params[Warden::Ocra::config.param_response] ?

@@ -42,6 +42,8 @@ class User
   end
 end
 
+class Profile < User ; end
+
 class TestApp < Sinatra::Base
   configure do
     User.create :email => 'bla@blub.com', :shared_secret => 'c0b93c552e593c4a'
@@ -74,6 +76,13 @@ end
 
 def warden
   last_request.env["warden"]
+end
+
+def strategy_instance(klass)
+  strategy = Warden::Ocra::Strategies.const_get(klass).send(:new, {'rack.input' => {}})
+  strategy.stub(:env).and_return('warden' => stub.as_null_object)
+  strategy.stub(:user_param).and_return('user')
+  strategy
 end
 
 def open_browser

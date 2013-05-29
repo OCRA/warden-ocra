@@ -5,11 +5,11 @@ module Warden
     module Strategies
       class OcraChallenge < BaseStrategy
         def valid?
-          user_param && !User.has_challenge?(user_param)
+          !has_challenge?
         end
 
         def authenticate!
-          user = User.generate_challenge! user_param
+          user = generate_challenge
           env['warden'].set_user(user)
           pass
         end
