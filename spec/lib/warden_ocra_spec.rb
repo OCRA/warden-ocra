@@ -4,8 +4,8 @@ describe Warden::Ocra do
   context "#configure" do
     context "should override default value" do
       context "all strategies" do
-        it "user_class" do
-          Warden::Ocra.config.user_class = 'Profile'
+        it "user_class_name" do
+          Warden::Ocra.config.user_class_name = 'Profile'
 
           user = User.new
           user.stub(:shared_secret).and_return('0000')
@@ -19,7 +19,7 @@ describe Warden::Ocra do
           strategy.authenticate!
           strategy.valid?
 
-          Warden::Ocra.config.user_class = 'User'
+          Warden::Ocra.config.user_class_name = 'User'
         end
       end
 
